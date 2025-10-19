@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 
 export default function HomeScreen() {
   const [city, setCity] = useState('');
+  const [weather, setWeather] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = () => {
-    console.log('Searching for:', city);
+  const handleSearch = async () => {
+    if (!city.trim()) {
+      setError('Please enter a city name.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setWeather(null);
+
+    setTimeout(() => {
+      setWeather(`Example weather for ${city}`);
+      setLoading(false);
+    }, 1500);
   };
 
   return (
@@ -22,6 +37,12 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.button} onPress={handleSearch}>
           <Text style={styles.buttonText}>Search</Text>
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.resultContainer}>
+        {loading && <ActivityIndicator size="large" color="#007AFF" />}
+        {error && <Text style={styles.error}>{error}</Text>}
+        {weather && !loading && <Text style={styles.weather}>{weather}</Text>}
       </View>
     </View>
   );
@@ -62,5 +83,17 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  resultContainer: {
+    marginTop: 30,
+    alignItems: 'center',
+  },
+  weather: {
+    fontSize: 18,
+    marginTop: 10,
+  },
+  error: {
+    color: 'red',
+    marginTop: 10,
   },
 });
