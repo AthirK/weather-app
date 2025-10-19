@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Keyboard,
+} from 'react-native';
+
+const API_KEY = process.env.EXPO_PUBLIC_API_KEY;
 
 export default function HomeScreen() {
   const [city, setCity] = useState('');
-  const [weather, setWeather] = useState<string | null>(null);
+  const [weather, setWeather] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const getEmojiForWeather = (main: string) => {
+    if (!main) return '❓';
+    const lower = main.toLowerCase();
+    if (lower.includes('clear')) return '☀️';
+    if (lower.includes('cloud')) return '☁️';
+    if (lower.includes('rain') || lower.includes('drizzle')) return '🌧️';
+    if (lower.includes('thunder')) return '⛈️';
+    if (lower.includes('snow')) return '❄️';
+    return '🌤️';
+  };
 
   const handleSearch = async () => {
     if (!city.trim()) {
@@ -17,10 +38,33 @@ export default function HomeScreen() {
     setError(null);
     setWeather(null);
 
-    setTimeout(() => {
-      setWeather(`Example weather for ${city}`);
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+        city,
+      )}&appid=${API_KEY}&units=metric&lang=en`;
+
+      const res = await fetch(url);
+
+      if (!res.ok) {
+        if (res.status === 404) throw new Error('City not found.');
+        throw new Error('Failed to fetch weather data.');
+      }
+
+      const data = await res.json();
+
+      setWeather({
+        name: data.name,
+        temp: Math.round(data.main.temp),
+        description: data.weather[0].description,
+        main: data.weather[0].main,
+      });
+
+      Keyboard.dismiss();
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong.');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -41,8 +85,18 @@ export default function HomeScreen() {
 
       <View style={styles.resultContainer}>
         {loading && <ActivityIndicator size="large" color="#007AFF" />}
-        {error && <Text style={styles.error}>{error}</Text>}
-        {weather && !loading && <Text style={styles.weather}>{weather}</Text>}
+        {error && !loading && <Text style={styles.error}>{error}</Text>}
+
+        {weather && !loading && (
+          <View style={styles.weatherBox}>
+            <Text style={styles.icon}>{getEmojiForWeather(weather.main)}</Text>
+            <Text style={styles.city}>
+              {weather.name}
+            </Text>
+            <Text style={styles.temp}>{weather.temp}°C</Text>
+            <Text style={styles.desc}>{weather.description}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -88,9 +142,26 @@ const styles = StyleSheet.create({
     marginTop: 30,
     alignItems: 'center',
   },
-  weather: {
+  weatherBox: {
+    alignItems: 'center',
+  },
+  icon: {
+    fontSize: 48,
+  },
+  city: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  temp: {
+    fontSize: 32,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  desc: {
     fontSize: 18,
-    marginTop: 10,
+    textTransform: 'capitalize',
+    marginTop: 4,
   },
   error: {
     color: 'red',
