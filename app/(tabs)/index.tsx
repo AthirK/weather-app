@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Keyboard,
 } from 'react-native';
 
@@ -69,7 +68,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Weather App</Text>
+      <Text style={styles.title}>🌦️ Weather App</Text>
 
       <View style={styles.searchRow}>
         <TextInput
@@ -78,14 +77,19 @@ export default function HomeScreen() {
           value={city}
           onChangeText={setCity}
         />
-        <TouchableOpacity style={styles.button} onPress={handleSearch}>
-          <Text style={styles.buttonText}>Search</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSearch}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Loading...' : 'Search'}
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.resultContainer}>
-        {loading && <ActivityIndicator size="large" color="#007AFF" />}
-        {error && !loading && <Text style={styles.error}>{error}</Text>}
+        {error && <Text style={styles.error}>{error}</Text>}
 
         {weather && !loading && (
           <View style={styles.weatherBox}>
@@ -97,6 +101,10 @@ export default function HomeScreen() {
             <Text style={styles.desc}>{weather.description}</Text>
           </View>
         )}
+
+        {!weather && !loading && !error && (
+          <Text style={styles.hint}>Type a city name and press Search 🔍</Text>
+        )}
       </View>
     </View>
   );
@@ -107,54 +115,62 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
     padding: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 20,
+    fontSize: 26,
+    fontWeight: '700',
+    marginBottom: 24,
+    color: '#333',
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 30,
   },
   input: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 40,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
     marginRight: 10,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#007AFF',
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#fff',
     fontWeight: '600',
   },
   resultContainer: {
-    marginTop: 30,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   weatherBox: {
     alignItems: 'center',
   },
   icon: {
-    fontSize: 48,
+    fontSize: 56,
+    marginBottom: 8,
   },
   city: {
     fontSize: 22,
     fontWeight: '600',
-    marginTop: 8,
+    marginTop: 4,
+    color: '#333',
   },
   temp: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '700',
     marginTop: 4,
   },
@@ -162,9 +178,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textTransform: 'capitalize',
     marginTop: 4,
+    color: '#555',
   },
   error: {
-    color: 'red',
+    color: '#D32F2F',
     marginTop: 10,
+    fontSize: 16,
+  },
+  hint: {
+    fontSize: 16,
+    color: '#888',
   },
 });
